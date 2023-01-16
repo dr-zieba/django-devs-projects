@@ -1,18 +1,21 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from .models import Profile, Skill
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from .forms import CustomUserCreationForm, CustomProfileCreationForm, CustomSkillAdd
+from .utils import searchUser
 
 # Create your views here.
 
 
 def profiles(request):
-    profiles = Profile.objects.all()
-    context = {"profiles": profiles}
+    profiles, search_query = searchUser(request.GET.get('search_query', ""))
+
+    context = {"profiles": profiles, 'search_query': search_query}
     return render(request, "users/profiles.html", context)
 
 
