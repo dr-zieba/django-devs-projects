@@ -24,6 +24,9 @@ class Project(models.Model):
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )
 
+    class Meta:
+        ordering = ['-created']
+
     def __str__(self):
         return self.title
 
