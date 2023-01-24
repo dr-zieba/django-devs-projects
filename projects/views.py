@@ -1,36 +1,50 @@
+from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from .models import Project, Review, Tag
-from .forms import ProjectForm
+from .forms import ProjectForm, ReviewForm
 from django.contrib.auth.decorators import login_required
-from .utils import searchProject
+from .utils import searchProject, pagePaginator
+from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+
 # Create your views here.
 from django.http import HttpResponse
 
 
 def projects(request):
-    projects, search_query = searchProject(request.GET.get('search_query', ""))
-    page_number = request.GET.get('page')
-    result_per_page = 9
-    paginator = Paginator(projects, result_per_page)
-    try:
-        projects = paginator.page(page_number)
-    except PageNotAnInteger:
-        page_number = 1
-        projects = paginator.page(page_number)
-    except EmptyPage:
-        page_number = paginator.num_pages
-        projects = paginator.page(page_number)
+    projects, search_query = searchProject(request)
+    custom_range, projects = pagePaginator(request, projects, 6)
+    context = {
+        "projects": projects,
+        "search_query": search_query,
+        "custom_range": custom_range,
+    }
 
-    projects = paginator.page(page_number)
-    context = {"projects": projects, 'search_query': search_query, 'paginator': paginator}
     return render(request, "projects/projects.html", context)
 
 
 def project(request, pk):
     project = Project.objects.get(id=pk)
     tags = project.tags.all()
-    context = {"project": project, "tags": tags}
+    form = ReviewForm()
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            try:
+                review = form.save(commit=False)
+                review.project = project
+                review.owner = request.user.profile
+                review.save()
+
+                project.getVoteCount
+
+                messages.success(request, "Comment added")
+                return redirect("project", pk=pk)
+            except IntegrityError:
+                messages.error(request, "Vote already added!!!")
+                return redirect("project", pk=pk)
+
+    context = {"project": project, "tags": tags, "form": form}
     return render(request, "projects/single-project.html", context)
 
 

@@ -2,20 +2,25 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from .models import Profile, Skill
+from .models import Profile, Skill, Message
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from .forms import CustomUserCreationForm, CustomProfileCreationForm, CustomSkillAdd
-from .utils import searchUser
+from .utils import searchUser, usersPaginator
 
 # Create your views here.
 
 
 def profiles(request):
-    profiles, search_query = searchUser(request.GET.get('search_query', ""))
+    profiles, search_query = searchUser(request)
+    custom_range, profiles = usersPaginator(request, profiles, 3)
 
-    context = {"profiles": profiles, 'search_query': search_query}
+    context = {
+        "profiles": profiles,
+        "search_query": search_query,
+        "custom_range": custom_range,
+    }
     return render(request, "users/profiles.html", context)
 
 
@@ -39,7 +44,7 @@ def loginUser(request):
         return redirect("profiles")
 
     if request.method == "POST":
-        username = request.POST["username"]
+        username = request.POST["username"].lower()
         password = request.POST["password"]
 
         try:
@@ -53,7 +58,9 @@ def loginUser(request):
         if user is not None:
             login(request, user)
             messages.success(request, "User logged in")
-            return redirect("profiles")
+            return redirect(
+                request.GET["next"] if "next" in request.GET else "user-account"
+            )
         else:
             messages.error(request, "Username or password incorrect")
 
@@ -159,3 +166,11 @@ def deleteSkill(request, pk):
 
     context = {"object": skill}
     return render(request, "delete_object.html", context)
+
+@login_required(login_url='login')
+def inbox(request):
+    user = request.user.profile
+    messagesReq = user.messages.all()
+    unreadMessages = messagesReq.filter(is_read=False).count()
+    context = {'messagesReq': messagesReq, 'unreadMessages': unreadMessages}
+    return render(request, 'users/inbox.html', context)

@@ -10,6 +10,7 @@ from .views import (
     addSkills,
     updateSkills,
     deleteSkill,
+    inbox,
 )
 
 
@@ -24,4 +25,5 @@ urlpatterns = [
     path("add-skill/", addSkills, name="add-skill"),
     path("update-skill/<str:pk>", updateSkills, name="update-skill"),
     path("delete-skill/<str:pk>", deleteSkill, name="delete-skill"),
+    path("inbox/", inbox, name="inbox")
 ]
