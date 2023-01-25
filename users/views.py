@@ -6,7 +6,7 @@ from .models import Profile, Skill, Message
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
-from .forms import CustomUserCreationForm, CustomProfileCreationForm, CustomSkillAdd
+from .forms import CustomUserCreationForm, CustomProfileCreationForm, CustomSkillAdd, CustomMessage
 from .utils import searchUser, usersPaginator
 
 # Create your views here.
@@ -174,3 +174,39 @@ def inbox(request):
     unreadMessages = messagesReq.filter(is_read=False).count()
     context = {'messagesReq': messagesReq, 'unreadMessages': unreadMessages}
     return render(request, 'users/inbox.html', context)
+
+@login_required(login_url='login')
+def inbox_message(request, pk):
+    user = request.user.profile
+    message = user.messages.get(id=pk)
+    if message.is_read == False:
+        message.is_read = True
+        message.save()
+    context = {'message': message}
+    return render(request, 'users/message.html', context)
+
+def createMessage(request, pk):
+    recipient = Profile.objects.get(id=pk)
+    form = CustomMessage()
+
+    try:
+        sender = request.user.profile
+    except:
+        sender = None
+
+    if request.method == 'POST':
+        form = CustomMessage(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = sender
+            message.recipient = recipient
+
+            if sender:
+                message.name = sender.name
+                message.email = sender.email
+            message.save()
+            messages.success(request, 'Message send')
+            return redirect('user-profile', pk=recipient.id)
+
+    context = {'recipient': recipient, 'form': form}
+    return render(request, 'users/message_form.html', context)

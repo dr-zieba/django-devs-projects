@@ -11,6 +11,8 @@ from .views import (
     updateSkills,
     deleteSkill,
     inbox,
+    inbox_message,
+    createMessage,
 )
 
 
@@ -25,5 +27,7 @@ urlpatterns = [
     path("add-skill/", addSkills, name="add-skill"),
     path("update-skill/<str:pk>", updateSkills, name="update-skill"),
     path("delete-skill/<str:pk>", deleteSkill, name="delete-skill"),
-    path("inbox/", inbox, name="inbox")
+    path("inbox/", inbox, name="inbox"),
+    path('inbox/<str:pk>', inbox_message, name='inbox-message'),
+    path('create-message/<str:pk>', createMessage, name='create-message')
 ]
