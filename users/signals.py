@@ -2,6 +2,11 @@ from django.contrib.auth.models import User
 from .models import Profile
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.core.mail import send_mail
+from django.conf import settings
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To, Content
 
 # Signals triggers action for particular operations on model stated as sender
 # Function is triggered with decorator receiver or with call like:
@@ -22,6 +27,22 @@ def createProfile(sender, instance, created, **kwargs):
         profile = Profile.objects.create(
             user=user, username=user.username, email=user.email, name=user.first_name
         )
+        subject = "Welcome message v2"
+        message = "Account created"
+
+        message = Mail(
+            from_email=Email(settings.DEFAULT_FROM_EMAIL),
+            to_emails=To('dev.sender.django@gmail.com'),
+            subject=subject,
+            plain_text_content=Content("text/plain", "and easy to do anywhere, even with Python"))
+        try:
+            mail_json = message.get()
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            response = sg.client.mail.send.post(request_body=mail_json)
+            print(response.status_code)
+            print(response.headers)
+        except Exception as e:
+            print(e.message)
 
 
 @receiver(post_save, sender=Profile)

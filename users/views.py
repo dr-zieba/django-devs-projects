@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from .forms import CustomUserCreationForm, CustomProfileCreationForm, CustomSkillAdd, CustomMessage
 from .utils import searchUser, usersPaginator
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
 
