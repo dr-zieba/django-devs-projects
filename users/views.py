@@ -16,7 +16,7 @@ from django.conf import settings
 
 def profiles(request):
     profiles, search_query = searchUser(request)
-    custom_range, profiles = usersPaginator(request, profiles, 3)
+    custom_range, profiles = usersPaginator(request, profiles, 9)
 
     context = {
         "profiles": profiles,
