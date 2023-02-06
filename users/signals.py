@@ -42,7 +42,7 @@ def createProfile(sender, instance, created, **kwargs):
             print(response.status_code)
             print(response.headers)
         except Exception as e:
-            print(e.message)
+            print(e)
 
 
 @receiver(post_save, sender=Profile)
